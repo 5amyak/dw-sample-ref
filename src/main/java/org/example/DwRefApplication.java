@@ -3,6 +3,10 @@ package org.example;
 import io.dropwizard.core.Application;
 import io.dropwizard.core.setup.Bootstrap;
 import io.dropwizard.core.setup.Environment;
+import io.dropwizard.forms.MultiPartBundle;
+import io.federecio.dropwizard.swagger.SwaggerBundle;
+import io.federecio.dropwizard.swagger.SwaggerBundleConfiguration;
+import org.example.resources.HelloWorldResource;
 
 public class DwRefApplication extends Application<DwRefConfiguration> {
 
@@ -17,13 +21,24 @@ public class DwRefApplication extends Application<DwRefConfiguration> {
 
     @Override
     public void initialize(final Bootstrap<DwRefConfiguration> bootstrap) {
-        // TODO: application initialization
+        bootstrap.addBundle(getSwaggerBundle());
+        bootstrap.addBundle(new MultiPartBundle());
+    }
+
+    private static SwaggerBundle<DwRefConfiguration> getSwaggerBundle() {
+        return new SwaggerBundle<>() {
+            @Override
+            protected SwaggerBundleConfiguration getSwaggerBundleConfiguration(DwRefConfiguration config) {
+                return config.getSwaggerBundleConfiguration();
+            }
+        };
     }
 
     @Override
     public void run(final DwRefConfiguration configuration,
                     final Environment environment) {
-        // TODO: implement application
+        HelloWorldResource helloWorldResource = new HelloWorldResource();
+        environment.jersey().register(helloWorldResource);
     }
 
 }
