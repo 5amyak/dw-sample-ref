@@ -10,20 +10,24 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.io.InputStream;
+import lombok.extern.slf4j.Slf4j;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 
-@Path("/hello-world")
+@Path("/")
 @Produces(MediaType.APPLICATION_JSON)
+@Slf4j
 public class HelloWorldResource {
 
   @GET
+  @Path("hello-world")
   public Response helloWorld() {
+    log.debug("Testing 123...");
     return Response.ok("Hello World").build();
   }
 
   @POST
-  @Path("/uploadFile")
+  @Path("fileDetails")
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   public Response uploadFile(
       @Parameter(schema = @Schema(type = "string", name = "file", format = "binary")) @FormDataParam("file") InputStream inputStream,
