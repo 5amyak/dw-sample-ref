@@ -2,6 +2,7 @@ package org.example.resources;
 
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
@@ -17,13 +18,14 @@ import org.glassfish.jersey.media.multipart.FormDataParam;
 @Path("/")
 @Produces(MediaType.APPLICATION_JSON)
 @Slf4j
+@Tag(name = "Hello World")
 public class HelloWorldResource {
 
   @GET
   @Path("hello-world")
   public Response helloWorld() {
     log.debug("Testing 123...");
-    return Response.ok("Hello World").build();
+    return Response.ok("Hello World !!!").build();
   }
 
   @POST
