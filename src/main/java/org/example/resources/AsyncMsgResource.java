@@ -31,4 +31,5 @@ public class AsyncMsgResource {
     rmqManager.getRmqProducer().publish(rk, msg.getBytes(StandardCharsets.UTF_8));
     return Response.ok(msg).build();
   }
+
 }
