@@ -14,17 +14,15 @@ import lombok.Getter;
 @Getter
 public class RmqProducer implements AutoCloseable {
 
-  private final String routingKey;
   private final Channel rmqChannel;
   private final ExecutorService executorService;
 
-  public RmqProducer(String routingKey, Connection rmqConn) throws IOException {
-    this.routingKey = routingKey;
+  public RmqProducer(Connection rmqConn) throws IOException {
     this.rmqChannel = rmqConn.createChannel();
     this.executorService = Executors.newSingleThreadExecutor();
   }
 
-  public void publish(byte[] msg) {
+  public void publish(String routingKey, byte[] msg) {
     executorService.submit(() -> {
       try {
         rmqChannel.basicPublish(DEFAULT_DIRECT_EXCHANGE, routingKey,

@@ -6,6 +6,7 @@ import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.nio.charset.StandardCharsets;
@@ -26,8 +27,8 @@ public class AsyncMsgResource {
   @Path("/publish")
   @Consumes(MediaType.TEXT_PLAIN)
   @RequestBody
-  public Response publishMsg(String msg) {
-    rmqManager.getRmqProducer().publish(msg.getBytes(StandardCharsets.UTF_8));
+  public Response publishMsg(String msg, @QueryParam("rk") String rk) {
+    rmqManager.getRmqProducer().publish(rk, msg.getBytes(StandardCharsets.UTF_8));
     return Response.ok(msg).build();
   }
 }

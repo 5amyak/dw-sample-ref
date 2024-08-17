@@ -41,7 +41,7 @@ public class RmqManager implements Managed {
     rmqConn = factory.newConnection(rmqConfig.getPrefix() + "conn");
 
     // create producer
-    rmqProducer = new RmqProducer(rmqConfig.getQueueName(), rmqConn);
+    rmqProducer = new RmqProducer(rmqConn);
 
     // create consumers based on concurrency
     for (int i = 0; i < rmqConfig.getConcurrencyCount(); i++) {
