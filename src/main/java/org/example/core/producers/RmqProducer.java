@@ -1,5 +1,7 @@
 package org.example.core.producers;
 
+import static org.example.setup.managed.RmqManager.DEFAULT_DIRECT_EXCHANGE;
+
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.MessageProperties;
@@ -25,7 +27,7 @@ public class RmqProducer implements AutoCloseable {
   public void publish(byte[] msg) {
     executorService.submit(() -> {
       try {
-        rmqChannel.basicPublish("", routingKey,
+        rmqChannel.basicPublish(DEFAULT_DIRECT_EXCHANGE, routingKey,
             MessageProperties.PERSISTENT_TEXT_PLAIN, msg);
       } catch (IOException e) {
         throw new RuntimeException(e);

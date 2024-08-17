@@ -26,6 +26,8 @@ public class RmqManager implements Managed {
   @Getter
   private RmqProducer rmqProducer;
 
+  public static final String DEFAULT_DIRECT_EXCHANGE = "amq.direct";
+
   public RmqManager(RmqConfig rmqConfig) {
     this.rmqConfig = rmqConfig;
   }
@@ -47,6 +49,7 @@ public class RmqManager implements Managed {
       rmqChannel.basicQos(rmqConfig.getPrefetchCount());
 
       rmqChannel.queueDeclare(rmqConfig.getQueueName(), true, false, true, null);
+      rmqChannel.queueBind(rmqConfig.getQueueName(), DEFAULT_DIRECT_EXCHANGE, rmqConfig.getQueueName());
       rmqChannel.basicConsume(rmqConfig.getQueueName(), false,
           rmqConfig.getPrefix() + "consumer" + i, new RmqConsumer(rmqChannel));
       rmqChannelList.add(rmqChannel);
