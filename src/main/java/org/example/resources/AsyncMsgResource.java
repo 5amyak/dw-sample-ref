@@ -24,7 +24,7 @@ public class AsyncMsgResource {
   private final RmqManager rmqManager;
 
   @POST
-  @Path("/publish")
+  @Path("/rmq")
   @Consumes(MediaType.TEXT_PLAIN)
   @RequestBody
   public Response publishMsg(String msg, @QueryParam("routingKey") String rk) {
