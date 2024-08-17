@@ -34,6 +34,8 @@ public class RmqConsumer extends DefaultConsumer {
     for (char ch : msg.toCharArray()) {
       if (ch == '.') {
         Thread.sleep(1000);
+      } else if (ch == '*') {
+        throw new IllegalArgumentException("* not allowed in msg");
       }
     }
   }

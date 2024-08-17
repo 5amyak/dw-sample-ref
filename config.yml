@@ -16,7 +16,11 @@ swagger:
 
 rmqConfig:
   uri: "amqp://guest:guest@localhost:5672/"
-  prefix: "dw-ref-"
-  queueName: "SAMPLE_REF_QUEUE"
-  concurrencyCount: 2
-  maxLength: 100000
+  connName: "dw-ref-conn"
+  queues:
+    - name: "SAMPLE_REF_QUEUE"
+      concurrencyCount: 2
+      maxLength: 100000
+      prefix: "sample-ref-"
+    - name: "SAMPLE_REF_QUEUE2"
+      prefix: "sample-ref2-"

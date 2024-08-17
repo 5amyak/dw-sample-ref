@@ -5,6 +5,7 @@ import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import io.dropwizard.lifecycle.Managed;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -13,6 +14,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.example.core.consumers.RmqConsumer;
 import org.example.core.producers.RmqProducer;
+import org.example.setup.configs.QueueConfig;
 import org.example.setup.configs.RmqConfig;
 
 /*
@@ -43,30 +45,37 @@ public class RmqManager implements Managed {
     factory.setVirtualHost("/");
 
     // create connection
-    rmqConn = factory.newConnection(rmqConfig.getPrefix() + "conn");
+    rmqConn = factory.newConnection(rmqConfig.getConnName());
 
     // create producer
     rmqProducer = new RmqProducer(rmqConn);
 
     // create consumers based on concurrency
-    for (int i = 0; i < rmqConfig.getConcurrencyCount(); i++) {
-      Channel rmqChannel = rmqConn.createChannel();
-      rmqChannel.basicQos(rmqConfig.getPrefetchCount());
-
-      rmqChannel.exchangeDeclare(RMQ_DLE, BuiltinExchangeType.DIRECT, true);
-      rmqChannel.queueDeclare(rmqConfig.getQueueName() + DLQ_SUFFIX, true, false, true, null);
-      rmqChannel.queueBind(rmqConfig.getQueueName() + DLQ_SUFFIX, RMQ_DLE, rmqConfig.getQueueName());
-
-      Map<String, Object> args = new HashMap<>();
-      args.put("x-dead-letter-exchange", RMQ_DLE);
-      args.put("x-max-length", rmqConfig.getMaxLength());
-      rmqChannel.queueDeclare(rmqConfig.getQueueName(), true, false, true, args);
-      rmqChannel.queueBind(rmqConfig.getQueueName(), DEFAULT_DIRECT_EXCHANGE, rmqConfig.getQueueName());
-
-      rmqChannel.basicConsume(rmqConfig.getQueueName(), false,
-          rmqConfig.getPrefix() + "consumer" + i, new RmqConsumer(rmqChannel));
-      rmqChannelList.add(rmqChannel);
+    for (QueueConfig queueConfig : rmqConfig.getQueues()) {
+      for (int i = 0; i < queueConfig.getConcurrencyCount(); i++) {
+        Channel rmqChannel = rmqConsumerInit(queueConfig, i);
+        rmqChannelList.add(rmqChannel);
+      }
     }
+  }
+
+  private Channel rmqConsumerInit(QueueConfig queueConfig, int i) throws IOException {
+    Channel rmqChannel = rmqConn.createChannel();
+    rmqChannel.basicQos(queueConfig.getPrefetchCount());
+    rmqChannel.exchangeDeclare(RMQ_DLE, BuiltinExchangeType.DIRECT, true);
+
+    rmqChannel.queueDeclare(queueConfig.getName() + DLQ_SUFFIX, true, false, true, null);
+    rmqChannel.queueBind(queueConfig.getName() + DLQ_SUFFIX, RMQ_DLE, queueConfig.getName());
+
+    Map<String, Object> args = new HashMap<>();
+    args.put("x-dead-letter-exchange", RMQ_DLE);
+    args.put("x-max-length", queueConfig.getMaxLength());
+    rmqChannel.queueDeclare(queueConfig.getName(), true, false, true, args);
+    rmqChannel.queueBind(queueConfig.getName(), DEFAULT_DIRECT_EXCHANGE, queueConfig.getName());
+
+    rmqChannel.basicConsume(queueConfig.getName(), false,
+        queueConfig.getPrefix() + "consumer" + i, new RmqConsumer(rmqChannel));
+    return rmqChannel;
   }
 
   @Override

@@ -1,14 +1,13 @@
 package org.example.setup.configs;
 
+import java.util.ArrayList;
+import java.util.List;
 import lombok.Getter;
 
 @Getter
 public class RmqConfig {
 
   private String uri;
-  private String prefix;
-  private String queueName;
-  private int concurrencyCount = 1;
-  private int prefetchCount = 1;
-  private int maxLength = Integer.MAX_VALUE;
+  private String connName;
+  private List<QueueConfig> queues = new ArrayList<>();
 }
