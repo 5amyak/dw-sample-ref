@@ -25,8 +25,6 @@ import org.example.setup.configs.RmqConfig;
 @Slf4j
 public class RmqManager implements Managed {
 
-  public static final String DLQ_SUFFIX = "_DLQ";
-  public static final String RMQ_DLE = "dle";
   private Connection rmqConn;
   private final List<Channel> rmqChannelList = new ArrayList<>();
   private final RmqConfig rmqConfig;
@@ -34,6 +32,8 @@ public class RmqManager implements Managed {
   private RmqProducer rmqProducer;
 
   public static final String DEFAULT_DIRECT_EXCHANGE = "amq.direct";
+  public static final String DLQ_SUFFIX = "_DLQ";
+  public static final String RMQ_DLE = "dle";
 
   public RmqManager(RmqConfig rmqConfig) {
     this.rmqConfig = rmqConfig;
