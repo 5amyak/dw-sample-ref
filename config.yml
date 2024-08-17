@@ -11,4 +11,11 @@ logging:
       logFormat: "%yellow([%d{yyyy-MM-dd HH:mm:ss.SSS}]) %magenta([%thread]) %highlight(%-5level) %cyan(%logger{36}) - %msg%n%throwable"
 
 swagger:
+  title: "Sample DW Ref"
   resourcePackage: org.example.resources
+
+rmqConfig:
+  uri: "amqp://guest:guest@localhost:5672/"
+  prefix: "dw-ref-"
+  queueName: "SAMPLE_REF_QUEUE"
+  concurrencyCount: 2

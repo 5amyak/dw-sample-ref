@@ -6,7 +6,10 @@ import io.dropwizard.core.setup.Environment;
 import io.dropwizard.forms.MultiPartBundle;
 import io.federecio.dropwizard.swagger.SwaggerBundle;
 import io.federecio.dropwizard.swagger.SwaggerBundleConfiguration;
+import org.example.resources.AsyncMsgResource;
 import org.example.resources.HelloWorldResource;
+import org.example.setup.configs.DwRefConfiguration;
+import org.example.setup.managed.RmqManager;
 
 public class DwRefApplication extends Application<DwRefConfiguration> {
 
@@ -37,8 +40,14 @@ public class DwRefApplication extends Application<DwRefConfiguration> {
     @Override
     public void run(final DwRefConfiguration configuration,
                     final Environment environment) {
+        RmqManager rmqManager = new RmqManager(configuration.getRmqConfig());
+        environment.lifecycle().manage(rmqManager);
+
         HelloWorldResource helloWorldResource = new HelloWorldResource();
+        AsyncMsgResource asyncMsgResource = new AsyncMsgResource(rmqManager);
+
         environment.jersey().register(helloWorldResource);
+        environment.jersey().register(asyncMsgResource);
     }
 
 }

@@ -5,7 +5,7 @@
     <option name="PROGRAM_PARAMETERS" value="server config.yml" />
     <extension name="coverage">
       <pattern>
-        <option name="PATTERN" value="org.example.*" />
+        <option name="PATTERN" value="org.example.setup.configs.*" />
         <option name="ENABLED" value="true" />
       </pattern>
     </extension>

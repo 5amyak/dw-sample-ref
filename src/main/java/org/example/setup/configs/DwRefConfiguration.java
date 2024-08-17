@@ -1,4 +1,4 @@
-package org.example;
+package org.example.setup.configs;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.dropwizard.core.Configuration;
@@ -10,4 +10,6 @@ public class DwRefConfiguration extends Configuration {
 
   @JsonProperty("swagger")
   private final SwaggerBundleConfiguration swaggerBundleConfiguration = new SwaggerBundleConfiguration();
+
+  private RmqConfig rmqConfig;
 }

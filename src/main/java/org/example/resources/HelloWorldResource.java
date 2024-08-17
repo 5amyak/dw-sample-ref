@@ -17,15 +17,15 @@ import org.glassfish.jersey.media.multipart.FormDataParam;
 
 @Path("/")
 @Produces(MediaType.APPLICATION_JSON)
-@Slf4j
 @Tag(name = "Hello World")
+@Slf4j
 public class HelloWorldResource {
 
   @GET
-  @Path("hello-world")
+  @Path("hello")
   public Response helloWorld() {
     log.debug("Testing 123...");
-    return Response.ok("Hello World !!!").build();
+    return Response.ok("World !!!").build();
   }
 
   @POST
