@@ -6,6 +6,7 @@ import com.rabbitmq.client.ConnectionFactory;
 import io.dropwizard.lifecycle.Managed;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.example.core.consumers.RmqConsumer;
@@ -48,7 +49,8 @@ public class RmqManager implements Managed {
       Channel rmqChannel = rmqConn.createChannel();
       rmqChannel.basicQos(rmqConfig.getPrefetchCount());
 
-      rmqChannel.queueDeclare(rmqConfig.getQueueName(), true, false, true, null);
+      rmqChannel.queueDeclare(rmqConfig.getQueueName(), true, false,
+          true, Map.of("x-max-length", rmqConfig.getMaxLength()));
       rmqChannel.queueBind(rmqConfig.getQueueName(), DEFAULT_DIRECT_EXCHANGE, rmqConfig.getQueueName());
       rmqChannel.basicConsume(rmqConfig.getQueueName(), false,
           rmqConfig.getPrefix() + "consumer" + i, new RmqConsumer(rmqChannel));

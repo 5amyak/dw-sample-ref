@@ -19,3 +19,4 @@ rmqConfig:
   prefix: "dw-ref-"
   queueName: "SAMPLE_REF_QUEUE"
   concurrencyCount: 2
+  maxLength: 100000
