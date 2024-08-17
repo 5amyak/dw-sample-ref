@@ -8,8 +8,10 @@ import io.dropwizard.lifecycle.Managed;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeoutException;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.example.core.consumers.RmqConsumer;
@@ -26,7 +28,7 @@ import org.example.setup.configs.RmqConfig;
 public class RmqManager implements Managed {
 
   private Connection rmqConn;
-  private final List<Channel> rmqChannelList = new ArrayList<>();
+  private final List<Channel> rmqConsumerChannels = new ArrayList<>();
   private final RmqConfig rmqConfig;
   @Getter
   private RmqProducer rmqProducer;
@@ -39,7 +41,8 @@ public class RmqManager implements Managed {
     this.rmqConfig = rmqConfig;
   }
 
-  private void init() throws Exception {
+  @Override
+  public void start() throws Exception {
     ConnectionFactory factory = new ConnectionFactory();
     factory.setUri(rmqConfig.getUri());
     factory.setVirtualHost("/");
@@ -51,10 +54,19 @@ public class RmqManager implements Managed {
     rmqProducer = new RmqProducer(rmqConn);
 
     // create consumers based on concurrency
+    this.startConsumers();
+    Managed.super.start();
+  }
+
+  public void startConsumers() throws IOException {
+    if (!rmqConsumerChannels.isEmpty()) {
+      return;
+    }
+
     for (QueueConfig queueConfig : rmqConfig.getQueues()) {
       for (int i = 0; i < queueConfig.getConcurrencyCount(); i++) {
         Channel rmqChannel = rmqConsumerInit(queueConfig, i);
-        rmqChannelList.add(rmqChannel);
+        rmqConsumerChannels.add(rmqChannel);
         log.info("Successfully created consumer for queue :: {}", queueConfig.getName());
       }
     }
@@ -80,22 +92,23 @@ public class RmqManager implements Managed {
   }
 
   @Override
-  public void start() throws Exception {
-    init();
-    Managed.super.start();
-  }
-
-  @Override
   public void stop() throws Exception {
-    for (Channel rmqChannel : rmqChannelList) {
-      rmqChannel.close();
-      log.info("RMQ channel :: {} is closed", rmqChannel.getChannelNumber());
-    }
+    this.stopConsumers();
     rmqProducer.close();
     if (rmqConn != null) {
       rmqConn.close();
       log.info("RMQ connection :: {} is closed", rmqConn.getClientProvidedName());
     }
     Managed.super.stop();
+  }
+
+  public void stopConsumers() throws IOException, TimeoutException {
+    Iterator<Channel> it = rmqConsumerChannels.iterator();
+    while (it.hasNext()) {
+      Channel rmqChannel = it.next();
+      rmqChannel.close();
+      log.info("RMQ channel :: {} is closed", rmqChannel.getChannelNumber());
+      it.remove();
+    }
   }
 }
