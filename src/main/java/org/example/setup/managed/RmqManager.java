@@ -6,7 +6,6 @@ import com.rabbitmq.client.ConnectionFactory;
 import io.dropwizard.lifecycle.Managed;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Executors;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.example.core.consumers.RmqConsumer;
@@ -36,11 +35,11 @@ public class RmqManager implements Managed {
     factory.setUri(rmqConfig.getUri());
     factory.setVirtualHost("/");
 
-    // create producer
+    // create connection
     rmqConn = factory.newConnection(rmqConfig.getPrefix() + "conn");
-    rmqProducer = new RmqProducer(rmqConfig.getQueueName(),
-        rmqConn.createChannel(), Executors.newSingleThreadExecutor());
-    rmqChannelList.add(rmqProducer.getRmqChannel());
+
+    // create producer
+    rmqProducer = new RmqProducer(rmqConfig.getQueueName(), rmqConn);
 
     // create consumers based on concurrency
     for (int i = 0; i < rmqConfig.getConcurrencyCount(); i++) {
