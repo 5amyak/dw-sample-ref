@@ -1,0 +1,26 @@
+---
+
+logging:
+  level: INFO
+  appenders:
+    - type: console
+      threshold: ALL
+      queueSize: 128
+      discardingThreshold: 0
+      timeZone: system
+      logFormat: "%yellow([%d{yyyy-MM-dd HH:mm:ss.SSS}]) %magenta([%thread]) %highlight(%-5level) %cyan(%logger{36}) - %msg%n%throwable"
+
+swagger:
+  title: "Sample DW Ref"
+  resourcePackage: org.example.resources
+
+rmqConfig:
+  uri: "amqp://guest:guest@localhost:5672/"
+  connName: "dw-ref-conn"
+  queues:
+    - name: "SAMPLE_REF_QUEUE"
+      concurrencyCount: 2
+      maxLength: 100000
+      prefix: "sample-ref-"
+    - name: "SAMPLE_REF_QUEUE2"
+      prefix: "sample-ref2-"

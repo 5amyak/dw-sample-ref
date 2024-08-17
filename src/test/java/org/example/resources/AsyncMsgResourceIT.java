@@ -1,24 +1,25 @@
 package org.example.resources;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.RETURNS_MOCKS;
-import static org.mockito.Mockito.mock;
 
+import io.dropwizard.testing.ResourceHelpers;
+import io.dropwizard.testing.junit5.DropwizardAppExtension;
 import io.dropwizard.testing.junit5.DropwizardExtensionsSupport;
-import io.dropwizard.testing.junit5.ResourceExtension;
+import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
-import org.example.setup.managed.RmqManager;
+import org.example.DwRefApplication;
+import org.example.setup.configs.DwRefConfiguration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(DropwizardExtensionsSupport.class)
-public class AsyncMsgResourceTest {
+public class AsyncMsgResourceIT {
 
-  private final RmqManager rmqManager = mock(RmqManager.class, RETURNS_MOCKS);
-  private final ResourceExtension resourceExtension = ResourceExtension.builder()
-      .addResource(new AsyncMsgResource(rmqManager))
-      .build();
+  private final DropwizardAppExtension<DwRefConfiguration> EXT = new DropwizardAppExtension<>(
+      DwRefApplication.class,
+      ResourceHelpers.resourceFilePath("test-config.yml")
+  );
 
   @Test
   public void testPublishMsg() {
@@ -27,7 +28,9 @@ public class AsyncMsgResourceTest {
     String rk = "test-routing-key";
 
     // Act
-    Response response = resourceExtension.target("/async/rmq")
+    Client client = EXT.client();
+    Response response = client.target(
+            String.format("http://localhost:%d/async/rmq", EXT.getLocalPort()))
         .queryParam("routingKey", rk)
         .request()
         .post(Entity.text(msg));
