@@ -12,12 +12,12 @@ import lombok.Getter;
 @Getter
 public class RmqProducer implements AutoCloseable {
 
-  private final String queueName;
+  private final String routingKey;
   private final Channel rmqChannel;
   private final ExecutorService executorService;
 
-  public RmqProducer(String queueName, Connection rmqConn) throws IOException {
-    this.queueName = queueName;
+  public RmqProducer(String routingKey, Connection rmqConn) throws IOException {
+    this.routingKey = routingKey;
     this.rmqChannel = rmqConn.createChannel();
     this.executorService = Executors.newSingleThreadExecutor();
   }
@@ -25,7 +25,7 @@ public class RmqProducer implements AutoCloseable {
   public void publish(byte[] msg) {
     executorService.submit(() -> {
       try {
-        rmqChannel.basicPublish("", queueName,
+        rmqChannel.basicPublish("", routingKey,
             MessageProperties.PERSISTENT_TEXT_PLAIN, msg);
       } catch (IOException e) {
         throw new RuntimeException(e);
