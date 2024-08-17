@@ -10,8 +10,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeoutException;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 @Getter
+@Slf4j
 public class RmqProducer implements AutoCloseable {
 
   private final Channel rmqChannel;
@@ -37,6 +39,7 @@ public class RmqProducer implements AutoCloseable {
   public void close() throws IOException, TimeoutException {
     executorService.shutdown();
     rmqChannel.close();
+    log.info("RMQ producer is closed with channel :: {}", rmqChannel.getChannelNumber());
   }
 
 }

@@ -55,6 +55,7 @@ public class RmqManager implements Managed {
       for (int i = 0; i < queueConfig.getConcurrencyCount(); i++) {
         Channel rmqChannel = rmqConsumerInit(queueConfig, i);
         rmqChannelList.add(rmqChannel);
+        log.info("Successfully created consumer for queue :: {}", queueConfig.getName());
       }
     }
   }
@@ -86,13 +87,15 @@ public class RmqManager implements Managed {
 
   @Override
   public void stop() throws Exception {
-    if (rmqConn != null) {
-      rmqConn.close();
-    }
     for (Channel rmqChannel : rmqChannelList) {
       rmqChannel.close();
+      log.info("RMQ channel :: {} is closed", rmqChannel.getChannelNumber());
     }
     rmqProducer.close();
+    if (rmqConn != null) {
+      rmqConn.close();
+      log.info("RMQ connection :: {} is closed", rmqConn.getClientProvidedName());
+    }
     Managed.super.stop();
   }
 }
