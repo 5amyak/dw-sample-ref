@@ -1,10 +1,12 @@
 package org.example.setup.managed;
 
+import com.rabbitmq.client.BuiltinExchangeType;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import io.dropwizard.lifecycle.Managed;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.Getter;
@@ -21,6 +23,8 @@ import org.example.setup.configs.RmqConfig;
 @Slf4j
 public class RmqManager implements Managed {
 
+  public static final String DLQ_SUFFIX = "_DLQ";
+  public static final String RMQ_DLE = "dle";
   private Connection rmqConn;
   private final List<Channel> rmqChannelList = new ArrayList<>();
   private final RmqConfig rmqConfig;
@@ -49,9 +53,16 @@ public class RmqManager implements Managed {
       Channel rmqChannel = rmqConn.createChannel();
       rmqChannel.basicQos(rmqConfig.getPrefetchCount());
 
-      rmqChannel.queueDeclare(rmqConfig.getQueueName(), true, false,
-          true, Map.of("x-max-length", rmqConfig.getMaxLength()));
+      rmqChannel.exchangeDeclare(RMQ_DLE, BuiltinExchangeType.DIRECT, true);
+      rmqChannel.queueDeclare(rmqConfig.getQueueName() + DLQ_SUFFIX, true, false, true, null);
+      rmqChannel.queueBind(rmqConfig.getQueueName() + DLQ_SUFFIX, RMQ_DLE, rmqConfig.getQueueName());
+
+      Map<String, Object> args = new HashMap<>();
+      args.put("x-dead-letter-exchange", RMQ_DLE);
+      args.put("x-max-length", rmqConfig.getMaxLength());
+      rmqChannel.queueDeclare(rmqConfig.getQueueName(), true, false, true, args);
       rmqChannel.queueBind(rmqConfig.getQueueName(), DEFAULT_DIRECT_EXCHANGE, rmqConfig.getQueueName());
+
       rmqChannel.basicConsume(rmqConfig.getQueueName(), false,
           rmqConfig.getPrefix() + "consumer" + i, new RmqConsumer(rmqChannel));
       rmqChannelList.add(rmqChannel);

@@ -8,7 +8,7 @@ public class RmqConfig {
   private String uri;
   private String prefix;
   private String queueName;
-  private final int concurrencyCount = 1;
-  private final int prefetchCount = 1;
-  private final int maxLength = Integer.MAX_VALUE;
+  private int concurrencyCount = 1;
+  private int prefetchCount = 1;
+  private int maxLength = Integer.MAX_VALUE;
 }

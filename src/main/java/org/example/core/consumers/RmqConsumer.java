@@ -18,20 +18,23 @@ public class RmqConsumer extends DefaultConsumer {
   public void handleDelivery(String consumerTag, Envelope envelope, BasicProperties properties, byte[] body) throws IOException {
     String routingKey = envelope.getRoutingKey();
     long deliveryTag = envelope.getDeliveryTag();
-
     String msg = new String(body);
-    simulateIntensiveTask(msg);
-    log.info("{} :: {} :: {} :: {}", msg, routingKey, consumerTag, deliveryTag);
-    getChannel().basicAck(deliveryTag, false);
+
+    try {
+      simulateIntensiveTask(msg);
+      log.info("{} :: {} :: {} :: {}", msg, routingKey, consumerTag, deliveryTag);
+      getChannel().basicAck(deliveryTag, false);
+    } catch (Exception e) {
+      log.error("Failed to consume msg due to ", e);
+      getChannel().basicReject(deliveryTag, false);
+    }
   }
 
-  private void simulateIntensiveTask(String msg) {
-    try {
-      for (char ch : msg.toCharArray()) {
-        if (ch == '.') Thread.sleep(1000);
+  private void simulateIntensiveTask(String msg) throws Exception {
+    for (char ch : msg.toCharArray()) {
+      if (ch == '.') {
+        Thread.sleep(1000);
       }
-    } catch (InterruptedException e) {
-      throw new RuntimeException(e);
     }
   }
 }
