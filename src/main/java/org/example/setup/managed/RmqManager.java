@@ -83,6 +83,7 @@ public class RmqManager implements Managed {
     for (Channel rmqChannel : rmqChannelList) {
       rmqChannel.close();
     }
+    rmqProducer.close();
     Managed.super.stop();
   }
 }

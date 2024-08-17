@@ -14,7 +14,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.setup.managed.RmqManager;
 
-@Path("/msg")
+@Path("/async")
 @Produces(MediaType.APPLICATION_JSON)
 @Tag(name = "Async Messaging")
 @Slf4j
@@ -27,7 +27,7 @@ public class AsyncMsgResource {
   @Path("/publish")
   @Consumes(MediaType.TEXT_PLAIN)
   @RequestBody
-  public Response publishMsg(String msg, @QueryParam("rk") String rk) {
+  public Response publishMsg(String msg, @QueryParam("routingKey") String rk) {
     rmqManager.getRmqProducer().publish(rk, msg.getBytes(StandardCharsets.UTF_8));
     return Response.ok(msg).build();
   }
