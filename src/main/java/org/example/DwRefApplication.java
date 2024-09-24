@@ -11,6 +11,7 @@ import org.example.cli.StopRmqTask;
 import org.example.resources.AsyncMsgResource;
 import org.example.resources.HelloWorldResource;
 import org.example.setup.configs.DwRefConfiguration;
+import org.example.setup.filters.MDCRequestIdFilter;
 import org.example.setup.managed.RmqManager;
 
 public class DwRefApplication extends Application<DwRefConfiguration> {
@@ -50,6 +51,9 @@ public class DwRefApplication extends Application<DwRefConfiguration> {
 
         environment.jersey().register(helloWorldResource);
         environment.jersey().register(asyncMsgResource);
+
+        environment.servlets().addFilter("MDCRequestIdFilter", new MDCRequestIdFilter())
+            .addMappingForUrlPatterns(null, true, "/*");
 
         environment.admin().addTask(new StopRmqTask(rmqManager));
         environment.admin().addTask(new StartRmqTask(rmqManager));
