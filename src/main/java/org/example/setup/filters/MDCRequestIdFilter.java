@@ -1,5 +1,7 @@
 package org.example.setup.filters;
 
+import static org.example.api.Constants.TRACE_ID_KEY;
+
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.FilterConfig;
@@ -11,8 +13,6 @@ import java.util.UUID;
 import org.slf4j.MDC;
 
 public class MDCRequestIdFilter implements Filter {
-
-  private static final String TRACE_ID_KEY = "traceId";
 
   @Override
   public void init(FilterConfig filterConfig) throws ServletException {
