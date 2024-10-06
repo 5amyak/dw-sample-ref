@@ -13,6 +13,7 @@ import org.example.setup.configs.DwRefConfiguration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+// mocking not allowed, test infra needs to spin up using docker container
 @ExtendWith(DropwizardExtensionsSupport.class)
 public class AsyncMsgResourceIT {
 

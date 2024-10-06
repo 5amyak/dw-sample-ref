@@ -24,3 +24,17 @@ rmqConfig:
       prefix: "sample-ref-"
     - name: "SAMPLE_REF_QUEUE2"
       prefix: "sample-ref2-"
+
+producer:
+  type: basic
+  bootstrapServers:
+    - 127.0.0.1:9092
+  name: producerNameToBeUsedInMetrics
+  keySerializer:
+    type: string
+  valueSerializer:
+    type: string
+  acks: all
+  retries: 3
+  maxInFlightRequestsPerConnection: 1
+  maxPollBlockTime: 10s

@@ -4,8 +4,11 @@ import io.dropwizard.core.Application;
 import io.dropwizard.core.setup.Bootstrap;
 import io.dropwizard.core.setup.Environment;
 import io.dropwizard.forms.MultiPartBundle;
+import io.dropwizard.kafka.KafkaProducerBundle;
+import io.dropwizard.kafka.KafkaProducerFactory;
 import io.federecio.dropwizard.swagger.SwaggerBundle;
 import io.federecio.dropwizard.swagger.SwaggerBundleConfiguration;
+import java.util.List;
 import org.example.cli.StartRmqTask;
 import org.example.cli.StopRmqTask;
 import org.example.resources.AsyncMsgResource;
@@ -16,47 +19,56 @@ import org.example.setup.managed.RmqManager;
 
 public class DwRefApplication extends Application<DwRefConfiguration> {
 
-    public static void main(final String[] args) throws Exception {
-        new DwRefApplication().run(args);
-    }
+  public static void main(final String[] args) throws Exception {
+    new DwRefApplication().run(args);
+  }
 
-    @Override
-    public String getName() {
-        return "DwSampleRef";
-    }
+  @Override
+  public String getName() {
+    return "DwSampleRef";
+  }
 
-    @Override
-    public void initialize(final Bootstrap<DwRefConfiguration> bootstrap) {
-        bootstrap.addBundle(getSwaggerBundle());
-        bootstrap.addBundle(new MultiPartBundle());
-    }
+  @Override
+  public void initialize(final Bootstrap<DwRefConfiguration> bootstrap) {
+    bootstrap.addBundle(getSwaggerBundle());
+    bootstrap.addBundle(new MultiPartBundle());
+    bootstrap.addBundle(kafkaProducerBundle);
+  }
 
-    private static SwaggerBundle<DwRefConfiguration> getSwaggerBundle() {
-        return new SwaggerBundle<>() {
-            @Override
-            protected SwaggerBundleConfiguration getSwaggerBundleConfiguration(DwRefConfiguration config) {
-                return config.getSwaggerBundleConfiguration();
-            }
-        };
-    }
+  private static SwaggerBundle<DwRefConfiguration> getSwaggerBundle() {
+    return new SwaggerBundle<>() {
+      @Override
+      protected SwaggerBundleConfiguration getSwaggerBundleConfiguration(DwRefConfiguration config) {
+        return config.getSwaggerBundleConfiguration();
+      }
+    };
+  }
 
-    @Override
-    public void run(final DwRefConfiguration configuration,
-                    final Environment environment) {
-        RmqManager rmqManager = new RmqManager(configuration.getRmqConfig());
-        environment.lifecycle().manage(rmqManager);
+  private static final KafkaProducerBundle<String, String, DwRefConfiguration> kafkaProducerBundle =
+      new KafkaProducerBundle<>(List.of()) {
+        @Override
+        public KafkaProducerFactory<String, String> getKafkaProducerFactory(DwRefConfiguration configuration) {
+          return configuration.getKafkaProducerFactory();
+        }
+      };
 
-        HelloWorldResource helloWorldResource = new HelloWorldResource();
-        AsyncMsgResource asyncMsgResource = new AsyncMsgResource(rmqManager);
+  @Override
+  public void run(final DwRefConfiguration configuration,
+      final Environment environment) {
+    RmqManager rmqManager = new RmqManager(configuration.getRmqConfig());
+    environment.lifecycle().manage(rmqManager);
 
-        environment.jersey().register(helloWorldResource);
-        environment.jersey().register(asyncMsgResource);
+    HelloWorldResource helloWorldResource = new HelloWorldResource();
+    AsyncMsgResource asyncMsgResource = new AsyncMsgResource(rmqManager, kafkaProducerBundle.getProducer());
 
-        environment.servlets().addFilter("MDCRequestIdFilter", new MDCRequestIdFilter())
-            .addMappingForUrlPatterns(null, true, "/*");
+    environment.jersey().register(helloWorldResource);
+    environment.jersey().register(asyncMsgResource);
 
-        environment.admin().addTask(new StopRmqTask(rmqManager));
-        environment.admin().addTask(new StartRmqTask(rmqManager));
-    }
+    environment.servlets().addFilter("MDCRequestIdFilter", new MDCRequestIdFilter())
+        .addMappingForUrlPatterns(null, true, "/*");
+
+    environment.admin().addTask(new StopRmqTask(rmqManager));
+    environment.admin().addTask(new StartRmqTask(rmqManager));
+  }
 
 }

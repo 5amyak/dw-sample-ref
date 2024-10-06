@@ -51,6 +51,11 @@
             <version>5.21.0</version>
         </dependency>
         <dependency>
+            <groupId>io.dropwizard.modules</groupId>
+            <artifactId>dropwizard-kafka</artifactId>
+            <version>4.0.1</version>
+        </dependency>
+        <dependency>
             <groupId>io.dropwizard</groupId>
             <artifactId>dropwizard-forms</artifactId>
         </dependency>

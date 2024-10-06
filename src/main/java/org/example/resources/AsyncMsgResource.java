@@ -10,8 +10,11 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.nio.charset.StandardCharsets;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.producer.Producer;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.example.setup.managed.RmqManager;
 
 @Path("/async")
@@ -22,13 +25,24 @@ import org.example.setup.managed.RmqManager;
 public class AsyncMsgResource {
 
   private final RmqManager rmqManager;
+  private final Producer<String, String> kafkaProducer;
 
   @POST
   @Path("/rmq")
   @Consumes(MediaType.TEXT_PLAIN)
   @RequestBody
-  public Response publishMsg(String msg, @QueryParam("routingKey") String rk) {
+  public Response publishRmqMsg(String msg, @QueryParam("routingKey") String rk) {
     rmqManager.getRmqProducer().publish(rk, msg.getBytes(StandardCharsets.UTF_8));
+    return Response.ok(msg).build();
+  }
+
+  @POST
+  @Path("/kafka")
+  @Consumes(MediaType.TEXT_PLAIN)
+  @RequestBody
+  public Response publishKafkaMsg(String msg, @QueryParam("topic") String topic) {
+    String key = UUID.randomUUID().toString();
+    kafkaProducer.send(new ProducerRecord<>(topic, key, msg));
     return Response.ok(msg).build();
   }
 
