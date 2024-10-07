@@ -13,8 +13,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.example.setup.managed.KafkaManager;
 import org.example.setup.managed.RmqManager;
 
 @Path("/async")
@@ -25,7 +25,7 @@ import org.example.setup.managed.RmqManager;
 public class AsyncMsgResource {
 
   private final RmqManager rmqManager;
-  private final Producer<String, String> kafkaProducer;
+  private final KafkaManager kafkaManager;
 
   @POST
   @Path("/rmq")
@@ -40,9 +40,8 @@ public class AsyncMsgResource {
   @Path("/kafka")
   @Consumes(MediaType.TEXT_PLAIN)
   @RequestBody
-  public Response publishKafkaMsg(String msg, @QueryParam("topic") String topic) {
-    String key = UUID.randomUUID().toString();
-    kafkaProducer.send(new ProducerRecord<>(topic, key, msg));
+  public Response publishKafkaMsg(String msg, @QueryParam("topic") String topic) throws InterruptedException {
+        kafkaManager.getKafkaProducer().send(new ProducerRecord<>(topic, UUID.randomUUID().toString(), msg));
     return Response.ok(msg).build();
   }
 

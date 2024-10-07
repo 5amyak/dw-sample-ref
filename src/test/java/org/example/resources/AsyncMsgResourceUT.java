@@ -8,7 +8,7 @@ import io.dropwizard.testing.junit5.DropwizardExtensionsSupport;
 import io.dropwizard.testing.junit5.ResourceExtension;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
-import org.apache.kafka.clients.producer.Producer;
+import org.example.setup.managed.KafkaManager;
 import org.example.setup.managed.RmqManager;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,9 +17,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 public class AsyncMsgResourceUT {
 
   private final RmqManager rmqManager = mock(RmqManager.class, RETURNS_MOCKS);
-  private final Producer kafkaProducer = mock(Producer.class, RETURNS_MOCKS);
+  private final KafkaManager kafkaManager = mock(KafkaManager.class, RETURNS_MOCKS);
   private final ResourceExtension resourceExtension = ResourceExtension.builder()
-      .addResource(new AsyncMsgResource(rmqManager, kafkaProducer))
+      .addResource(new AsyncMsgResource(rmqManager, kafkaManager))
       .build();
 
   @Test

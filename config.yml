@@ -38,3 +38,14 @@ producer:
   retries: 3
   maxInFlightRequestsPerConnection: 1
   maxPollBlockTime: 10s
+
+consumer:
+  type: basic
+  bootstrapServers:
+    - 127.0.0.1:9092
+  consumerGroupId: consumer1
+  name: consumerNameToBeUsedInMetrics
+  keyDeserializer:
+    type: string
+  valueDeserializer:
+    type: string
