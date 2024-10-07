@@ -42,6 +42,27 @@ public class DwRefApplication extends Application<DwRefConfiguration> {
     bootstrap.addBundle(kafkaConsumerBundle);
   }
 
+  @Override
+  public void run(final DwRefConfiguration configuration,
+      final Environment environment) {
+    RmqManager rmqManager = new RmqManager(configuration.getRmqConfig());
+    final KafkaManager kafkaManager = new KafkaManager(kafkaConsumerBundle.getConsumer(), kafkaProducerBundle.getProducer());
+    environment.lifecycle().manage(kafkaManager);
+    environment.lifecycle().manage(rmqManager);
+
+    HelloWorldResource helloWorldResource = new HelloWorldResource();
+    AsyncMsgResource asyncMsgResource = new AsyncMsgResource(rmqManager, kafkaManager);
+
+    environment.jersey().register(helloWorldResource);
+    environment.jersey().register(asyncMsgResource);
+
+    environment.servlets().addFilter("MDCRequestIdFilter", new MDCRequestIdFilter())
+        .addMappingForUrlPatterns(null, true, "/*");
+
+    environment.admin().addTask(new StopRmqTask(rmqManager));
+    environment.admin().addTask(new StartRmqTask(rmqManager));
+  }
+
   private static final SwaggerBundle<DwRefConfiguration> swaggerBundle = new SwaggerBundle<>() {
     @Override
     protected SwaggerBundleConfiguration getSwaggerBundleConfiguration(DwRefConfiguration config) {
@@ -72,25 +93,4 @@ public class DwRefApplication extends Application<DwRefConfiguration> {
           return configuration.getKafkaConsumerFactory();
         }
       };
-
-  @Override
-  public void run(final DwRefConfiguration configuration,
-      final Environment environment) {
-    RmqManager rmqManager = new RmqManager(configuration.getRmqConfig());
-    final KafkaManager kafkaManager = new KafkaManager(kafkaConsumerBundle.getConsumer(), kafkaProducerBundle.getProducer());
-    environment.lifecycle().manage(kafkaManager);
-    environment.lifecycle().manage(rmqManager);
-
-    HelloWorldResource helloWorldResource = new HelloWorldResource();
-    AsyncMsgResource asyncMsgResource = new AsyncMsgResource(rmqManager, kafkaManager);
-
-    environment.jersey().register(helloWorldResource);
-    environment.jersey().register(asyncMsgResource);
-
-    environment.servlets().addFilter("MDCRequestIdFilter", new MDCRequestIdFilter())
-        .addMappingForUrlPatterns(null, true, "/*");
-
-    environment.admin().addTask(new StopRmqTask(rmqManager));
-    environment.admin().addTask(new StartRmqTask(rmqManager));
-  }
 }
