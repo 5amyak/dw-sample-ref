@@ -16,12 +16,18 @@ import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
 import org.apache.kafka.common.TopicPartition;
 import org.example.cli.StartRmqTask;
 import org.example.cli.StopRmqTask;
-import org.example.setup.managed.KafkaManager;
+import org.example.core.statemachine.StateMachineFactory;
+import org.example.core.statemachine.StateMachineFactory.ApplicationEvents;
+import org.example.core.statemachine.StateMachineFactory.ApplicationStates;
+import org.example.core.statemachine.StateMachineListener;
 import org.example.resources.AsyncMsgResource;
 import org.example.resources.HelloWorldResource;
+import org.example.resources.StateMachineResource;
 import org.example.setup.configs.DwRefConfiguration;
 import org.example.setup.filters.MDCRequestIdFilter;
+import org.example.setup.managed.KafkaManager;
 import org.example.setup.managed.RmqManager;
+import org.springframework.statemachine.StateMachine;
 
 public class DwRefApplication extends Application<DwRefConfiguration> {
 
@@ -44,7 +50,12 @@ public class DwRefApplication extends Application<DwRefConfiguration> {
 
   @Override
   public void run(final DwRefConfiguration configuration,
-      final Environment environment) {
+      final Environment environment) throws Exception {
+    // Create and start the state machine
+    StateMachine<ApplicationStates, ApplicationEvents> stateMachine = StateMachineFactory.buildStateMachine();
+    stateMachine.addStateListener(new StateMachineListener());
+    stateMachine.start();
+
     RmqManager rmqManager = new RmqManager(configuration.getRmqConfig());
     final KafkaManager kafkaManager = new KafkaManager(kafkaConsumerBundle.getConsumer(), kafkaProducerBundle.getProducer());
     environment.lifecycle().manage(kafkaManager);
@@ -52,9 +63,11 @@ public class DwRefApplication extends Application<DwRefConfiguration> {
 
     HelloWorldResource helloWorldResource = new HelloWorldResource();
     AsyncMsgResource asyncMsgResource = new AsyncMsgResource(rmqManager, kafkaManager);
+    StateMachineResource stateMachineResource = new StateMachineResource(stateMachine);
 
     environment.jersey().register(helloWorldResource);
     environment.jersey().register(asyncMsgResource);
+    environment.jersey().register(stateMachineResource);
 
     environment.servlets().addFilter("MDCRequestIdFilter", new MDCRequestIdFilter())
         .addMappingForUrlPatterns(null, true, "/*");
