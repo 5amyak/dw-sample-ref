@@ -12,6 +12,7 @@ import io.federecio.dropwizard.swagger.SwaggerBundle;
 import io.federecio.dropwizard.swagger.SwaggerBundleConfiguration;
 import java.util.Collection;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
 import org.apache.kafka.common.TopicPartition;
 import org.example.cli.StartRmqTask;
@@ -29,6 +30,7 @@ import org.example.setup.managed.KafkaManager;
 import org.example.setup.managed.RmqManager;
 import org.springframework.statemachine.StateMachine;
 
+@Slf4j
 public class DwRefApplication extends Application<DwRefConfiguration> {
 
   public static void main(final String[] args) throws Exception {
@@ -54,7 +56,9 @@ public class DwRefApplication extends Application<DwRefConfiguration> {
     // Create and start the state machine
     StateMachine<ApplicationStates, ApplicationEvents> stateMachine = StateMachineFactory.buildStateMachine();
     stateMachine.addStateListener(new StateMachineListener());
-    stateMachine.start();
+    stateMachine.startReactively().doOnSuccess(
+        __ -> log.info("State machine started successfully !!!")
+    ).subscribe();
 
     RmqManager rmqManager = new RmqManager(configuration.getRmqConfig());
     final KafkaManager kafkaManager = new KafkaManager(kafkaConsumerBundle.getConsumer(), kafkaProducerBundle.getProducer());
