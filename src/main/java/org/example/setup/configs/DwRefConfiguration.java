@@ -1,6 +1,7 @@
 package org.example.setup.configs;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.dropwizard.client.JerseyClientConfiguration;
 import io.dropwizard.core.Configuration;
 import io.dropwizard.kafka.KafkaConsumerFactory;
 import io.dropwizard.kafka.KafkaProducerFactory;
@@ -14,6 +15,10 @@ public class DwRefConfiguration extends Configuration {
 
   @JsonProperty("swagger")
   private final SwaggerBundleConfiguration swaggerBundleConfiguration = new SwaggerBundleConfiguration();
+
+  @Valid
+  @NotNull
+  private final JerseyClientConfiguration jerseyClientConfiguration = new JerseyClientConfiguration();
 
   @Valid
   @NotNull

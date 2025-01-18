@@ -1,5 +1,6 @@
 package org.example;
 
+import client.CatFactClient;
 import io.dropwizard.core.Application;
 import io.dropwizard.core.setup.Bootstrap;
 import io.dropwizard.core.setup.Environment;
@@ -22,7 +23,7 @@ import org.example.core.statemachine.StateMachineFactory.ApplicationEvents;
 import org.example.core.statemachine.StateMachineFactory.ApplicationStates;
 import org.example.core.statemachine.StateMachineListener;
 import org.example.resources.AsyncMsgResource;
-import org.example.resources.HelloWorldResource;
+import org.example.resources.DriverResource;
 import org.example.resources.StateMachineResource;
 import org.example.setup.configs.DwRefConfiguration;
 import org.example.setup.filters.MDCRequestIdFilter;
@@ -53,6 +54,8 @@ public class DwRefApplication extends Application<DwRefConfiguration> {
   @Override
   public void run(final DwRefConfiguration configuration,
       final Environment environment) throws Exception {
+    CatFactClient catFactClient = new CatFactClient(environment, configuration);
+
     // Create and start the state machine
     StateMachine<ApplicationStates, ApplicationEvents> stateMachine = StateMachineFactory.buildStateMachine();
     stateMachine.addStateListener(new StateMachineListener());
@@ -65,11 +68,11 @@ public class DwRefApplication extends Application<DwRefConfiguration> {
     environment.lifecycle().manage(kafkaManager);
     environment.lifecycle().manage(rmqManager);
 
-    HelloWorldResource helloWorldResource = new HelloWorldResource();
+    DriverResource driverResource = new DriverResource(catFactClient);
     AsyncMsgResource asyncMsgResource = new AsyncMsgResource(rmqManager, kafkaManager);
     StateMachineResource stateMachineResource = new StateMachineResource(stateMachine);
 
-    environment.jersey().register(helloWorldResource);
+    environment.jersey().register(driverResource);
     environment.jersey().register(asyncMsgResource);
     environment.jersey().register(stateMachineResource);
 
